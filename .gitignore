@@ -1,0 +1,9 @@
+DerivedData*/
+build/
+SourcePackages/
+.ufbt/
+dist/
+*.xcuserstate
+xcuserdata/
+.DS_Store
+.env

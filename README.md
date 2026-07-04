@@ -1,4 +1,4 @@
-# Dolphin Deck 1.0.1
+# Dolphin Deck 1.1.0
 
 <p align="center">
   <img src="DolphinDeck/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png" width="160" alt="Dolphin Deck App-Icon">
@@ -32,8 +32,14 @@ Kurzbefehle und App-Installation.
 - Home- und Sperrbildschirm-Widget
 - Apple-Kurzbefehle für Verbindung, Status, Alarm, Tasten, Favoriten und Datei-Upload
 - direkte Siri-/Widget-Schnellaktion für bevorzugte Sub-GHz-Signale
+- eigene **Dolphin Deck Bridge** als Flipper-FAP
+- bidirektionale DD1-Kommandos über das offizielle Application-RPC
+- iPhone-Suchhinweis mit Ton, Vibration und lokaler Mitteilung
+- Ein-Klick-Installation und Aktualisierung der Bridge-FAP aus GitHub
+- optionaler ESP32-BLE-HID-Modus für Lautstärke und Mediensteuerung
+- optionaler nRF24-Langstreckenmodus mit zweitem ESP32 als BLE-Gateway
 
-Die Apple-Watch-App ist in Version 1.0.1 bewusst nicht enthalten.
+Die Apple-Watch-App ist in Version 1.1.0 bewusst nicht enthalten.
 
 ## Voraussetzungen
 
@@ -45,13 +51,16 @@ Die Apple-Watch-App ist in Version 1.0.1 bewusst nicht enthalten.
 
 ## Installation auf iPhone oder iPad
 
-Im GitHub-Release liegen zwei Downloads:
+Im GitHub-Release liegen diese Downloads:
 
-- `DolphinDeck_1.0.1_Source.zip` enthält das vollständige Xcode-Projekt.
-- `DolphinDeck_1.0.1_Development.ipa` ist mit dem Entwicklungsprofil des
-  Projekts signiert und funktioniert nur auf darin freigeschalteten Geräten.
-  Für andere Geräte muss die App mit dem eigenen Apple-Developer-Team neu
-  signiert werden.
+- `DolphinDeck_1.1.0_Source.zip` enthält das vollständige Xcode-Projekt.
+- `dolphin_deck_bridge.fap` ist die fertige Flipper-App.
+- `dolphin_deck_bridge.fap.sha256` wird von der iPhone-App zur
+  Integritätsprüfung verwendet.
+
+Eine Development-IPA wäre immer an die im jeweiligen Provisioning Profile
+registrierten Geräte gebunden. Die iPhone-App wird deshalb aus dem Xcode-
+Projekt mit dem eigenen Apple-Developer-Team signiert.
 
 1. Repository herunterladen oder klonen.
 2. `DolphinDeck.xcodeproj` in Xcode öffnen.
@@ -67,7 +76,7 @@ Im GitHub-Release liegen zwei Downloads:
 8. Einmal **Product → Clean Build Folder** und danach **Run** ausführen.
 
 Nach erfolgreicher Installation muss unter **Mehr → Einstellungen** die Version
-`1.0.1` angezeigt werden.
+`1.1.0` angezeigt werden.
 
 ## Flipper verbinden
 
@@ -166,6 +175,62 @@ Originaldateien automatisch zu löschen.
 Unter **Mehr → FAP-Installer & Updates** kann eine lokale `.fap` oder eine
 direkte HTTPS-Adresse gewählt werden. Die App überträgt die Datei in den
 gewählten `/ext/apps/...`-Ordner und kann sie danach direkt starten.
+
+## Dolphin Deck Bridge auf dem Flipper
+
+Unter **Mehr → Flipper-App & iPhone-Bridge** lässt sich
+`dolphin_deck_bridge.fap` direkt aus dem neuesten GitHub-Release laden,
+validieren und nach folgendem Pfad übertragen:
+
+```text
+/ext/apps/Tools/dolphin_deck_bridge.fap
+```
+
+Danach startet Dolphin Deck die FAP über RPC. Die FAP bietet diese Aktionen:
+
+- iPhone suchen
+- lokale Mitteilung auslösen
+- Lautstärke erhöhen/verringern
+- Wiedergabe/Pause
+- Home und App-Umschalter über optionales ESP32-BLE-HID
+- Sperranfrage mit ehrlicher Nicht-verfügbar-Rückmeldung auf iOS
+- Umschalten zwischen direkter iPhone-Bridge und GPIO-Modul
+
+Die Kommunikation verwendet das versionierte Textprotokoll `DD1` innerhalb des
+offiziellen bidirektionalen Flipper-Application-RPC. Die Bridge kann in der App
+nach jeder Bluetooth-Verbindung automatisch gestartet werden.
+
+### Grenzen von iOS
+
+Dolphin Deck kann einen eigenen hörbaren Suchhinweis und eine lokale
+Mitteilung auslösen. Apples geschützter **„Wo ist?“**-Dauerton ist nicht als
+öffentliche Drittanbieter-API verfügbar.
+
+Ebenso bietet iOS Apps keine öffentliche API, um das Display zu sperren, den
+Home-Befehl auszulösen oder den systemweiten App-Umschalter zu bedienen.
+Dolphin Deck verwendet dafür bewusst keine privaten APIs. Lautstärke,
+Medientasten und – abhängig vom iOS-Kontext – Hardware-Tastaturkürzel können
+stattdessen über ein als Tastatur gekoppeltes ESP32-BLE-HID gesendet werden.
+
+## ESP32 und nRF24
+
+Referenz-Firmware und Verdrahtung liegen unter [Hardware](Hardware/README.md).
+Der direkte Aufbau ist:
+
+```text
+Flipper GPIO-UART → ESP32 BLE HID → iPhone
+```
+
+Für nRF24 sind zwei Funkmodule nötig, da das iPhone selbst kein nRF24
+unterstützt:
+
+```text
+Flipper → ESP32+nRF24 ⇄ nRF24+ESP32 → BLE HID → iPhone
+```
+
+Den Modus stellt man in der Bridge-Seite der iPhone-App ein. Die FAP speichert
+ihn zusätzlich auf der SD-Karte. Der UART läuft mit 115200 Baud und 3,3-V-
+Logik.
 
 ## uFBT: Quellcode unterwegs bauen und installieren
 

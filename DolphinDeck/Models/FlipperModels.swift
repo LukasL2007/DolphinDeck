@@ -31,6 +31,68 @@ enum FlipperConnectionState: Equatable {
     }
 }
 
+enum DolphinDeckBridgeState: Equatable, Sendable {
+    case unavailable
+    case stopped
+    case starting
+    case connected
+    case failed(String)
+
+    var title: String {
+        switch self {
+        case .unavailable: "Flipper nicht verbunden"
+        case .stopped: "Bridge gestoppt"
+        case .starting: "Bridge wird gestartet"
+        case .connected: "Bridge verbunden"
+        case .failed(let message): "Fehler: \(message)"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .unavailable: "link.badge.plus"
+        case .stopped: "pause.circle"
+        case .starting: "arrow.triangle.2.circlepath"
+        case .connected: "checkmark.circle.fill"
+        case .failed: "exclamationmark.triangle.fill"
+        }
+    }
+}
+
+enum DolphinDeckRangeMode: String, CaseIterable, Identifiable, Sendable {
+    case direct = "direct"
+    case esp32HID = "esp32_hid"
+    case nrf24Gateway = "nrf24_gateway"
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .direct: "Direkt über Flipper-Bluetooth"
+        case .esp32HID: "ESP32 über GPIO"
+        case .nrf24Gateway: "nRF24 über ESP32-Gateway"
+        }
+    }
+
+    var detail: String {
+        switch self {
+        case .direct:
+            "Offizielles Flipper-RPC. Suchton und Benachrichtigung funktionieren auch beim Aufwecken im Bluetooth-Hintergrund."
+        case .esp32HID:
+            "Der Flipper sendet über GPIO-UART an ein ESP32-BLE-HID. Damit sind Medien-, Home- und App-Wechsel-Tasten möglich."
+        case .nrf24Gateway:
+            "Zwei nRF24-Module überbrücken die Funkstrecke; ein ESP32 am iPhone-Ende übersetzt anschließend zu BLE HID."
+        }
+    }
+
+    var flipperTransport: String {
+        switch self {
+        case .direct: "IPHONE"
+        case .esp32HID, .nrf24Gateway: "ESP32"
+        }
+    }
+}
+
 struct FlipperDevice: Identifiable, Equatable {
     let id: UUID
     var name: String

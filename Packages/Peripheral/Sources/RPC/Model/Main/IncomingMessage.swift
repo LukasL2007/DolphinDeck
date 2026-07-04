@@ -2,6 +2,7 @@ public enum IncomingMessage {
     case error(Error)
     case screenFrame(ScreenFrame)
     case appState(AppState)
+    case appDataExchange([UInt8])
     case unknown(String)
 
     public enum AppState {
@@ -22,6 +23,8 @@ extension IncomingMessage {
             self.init(decoding: response)
         case .appStateResponse(let response):
             self.init(decoding: response)
+        case .appDataExchangeRequest(let request):
+            self = .appDataExchange(.init(request.data))
         default:
             self = .unknown("\(main)")
         }

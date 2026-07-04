@@ -1,0 +1,11 @@
+App(
+    appid="dolphin_deck_bridge",
+    name="Dolphin Deck Bridge",
+    apptype=FlipperAppType.EXTERNAL,
+    entry_point="dolphin_deck_bridge_app",
+    requires=["gui"],
+    stack_size=6 * 1024,
+    fap_category="Tools",
+    fap_icon="app_icon.png",
+    fap_version="1.1.0",
+)

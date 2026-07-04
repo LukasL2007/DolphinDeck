@@ -29,6 +29,7 @@
 		A20000000000000000000002 /* DolphinDeckWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = B20000000000000000000004 /* DolphinDeckWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A10000000000000000000014 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000015 /* Assets.xcassets */; };
 		A10000000000000000000015 /* UFBTBuilderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000016 /* UFBTBuilderView.swift */; };
+		A10000000000000000000016 /* DolphinDeckBridgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000000000000000017 /* DolphinDeckBridgeView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -81,6 +82,7 @@
 		B20000000000000000000004 /* DolphinDeckWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = DolphinDeckWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		B10000000000000000000015 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B10000000000000000000016 /* UFBTBuilderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UFBTBuilderView.swift; sourceTree = "<group>"; };
+		B10000000000000000000017 /* DolphinDeckBridgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DolphinDeckBridgeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -166,6 +168,7 @@
 				B10000000000000000000012 /* FilePreviewEditorView.swift */,
 				B10000000000000000000013 /* FAPInstallerView.swift */,
 				B10000000000000000000016 /* UFBTBuilderView.swift */,
+				B10000000000000000000017 /* DolphinDeckBridgeView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -323,6 +326,7 @@
 				A10000000000000000000011 /* FilePreviewEditorView.swift in Sources */,
 				A10000000000000000000012 /* FAPInstallerView.swift in Sources */,
 				A10000000000000000000015 /* UFBTBuilderView.swift in Sources */,
+				A10000000000000000000016 /* DolphinDeckBridgeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -387,7 +391,7 @@
 				CODE_SIGN_ENTITLEMENTS = DolphinDeck/DolphinDeck.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = 4F86GMYRXN;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -397,7 +401,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = de.lukasleipacher.DolphinDeck;
 				PRODUCT_NAME = "Dolphin Deck";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -415,7 +419,7 @@
 				CODE_SIGN_ENTITLEMENTS = DolphinDeck/DolphinDeck.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = 4F86GMYRXN;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -425,7 +429,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = de.lukasleipacher.DolphinDeck;
 				PRODUCT_NAME = "Dolphin Deck";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -443,7 +447,7 @@
 				CODE_SIGN_ENTITLEMENTS = DolphinDeckWidget/DolphinDeckWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = 4F86GMYRXN;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = DolphinDeckWidget/Info.plist;
@@ -453,7 +457,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = de.lukasleipacher.DolphinDeck.Widget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -471,7 +475,7 @@
 				CODE_SIGN_ENTITLEMENTS = DolphinDeckWidget/DolphinDeckWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = 4F86GMYRXN;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = DolphinDeckWidget/Info.plist;
@@ -481,7 +485,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = de.lukasleipacher.DolphinDeck.Widget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;

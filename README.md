@@ -284,13 +284,13 @@ Lizenzhinweise stehen in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 Klicke ein Bild zum Vergrößern.
 
 <p align="center">
-  <a href="Screenshots/IMG_4940.PNG"><img src="Screenshots/IMG_4940.PNG" width="240" alt="Screenshot IMG_4940"></a>
-  <a href="Screenshots/IMG_4941.PNG"><img src="Screenshots/IMG_4941.PNG" width="240" alt="Screenshot IMG_4941"></a>
-  <a href="Screenshots/IMG_4942.PNG"><img src="Screenshots/IMG_4942.PNG" width="240" alt="Screenshot IMG_4942"></a>
-  <a href="Screenshots/IMG_4943.PNG"><img src="Screenshots/IMG_4943.PNG" width="240" alt="Screenshot IMG_4943"></a>
-  <a href="Screenshots/IMG_4944.PNG"><img src="Screenshots/IMG_4944.PNG" width="240" alt="Screenshot IMG_4944"></a>
-  <a href="Screenshots/IMG_4945.PNG"><img src="Screenshots/IMG_4945.PNG" width="240" alt="Screenshot IMG_4945"></a>
-  <a href="Screenshots/IMG_4946.PNG"><img src="Screenshots/IMG_4946.PNG" width="240" alt="Screenshot IMG_4946"></a>
-  <a href="Screenshots/IMG_4947.PNG"><img src="Screenshots/IMG_4947.PNG" width="240" alt="Screenshot IMG_4947"></a>
-  <a href="Screenshots/IMG_4948.PNG"><img src="Screenshots/IMG_4948.PNG" width="240" alt="Screenshot IMG_4948"></a>
+  <a href="https://github.com/LukasL2007/DolphinDeck/blob/codex/dolphin-deck-1.1.0/Screenshots/IMG_4940.PNG"><img src="https://raw.githubusercontent.com/LukasL2007/DolphinDeck/codex/dolphin-deck-1.1.0/Screenshots/IMG_4940.PNG" width="240" alt="Screenshot IMG_4940"></a>
+  <a href="https://github.com/LukasL2007/DolphinDeck/blob/codex/dolphin-deck-1.1.0/Screenshots/IMG_4941.PNG"><img src="https://raw.githubusercontent.com/LukasL2007/DolphinDeck/codex/dolphin-deck-1.1.0/Screenshots/IMG_4941.PNG" width="240" alt="Screenshot IMG_4941"></a>
+  <a href="https://github.com/LukasL2007/DolphinDeck/blob/codex/dolphin-deck-1.1.0/Screenshots/IMG_4942.PNG"><img src="https://raw.githubusercontent.com/LukasL2007/DolphinDeck/codex/dolphin-deck-1.1.0/Screenshots/IMG_4942.PNG" width="240" alt="Screenshot IMG_4942"></a>
+  <a href="https://github.com/LukasL2007/DolphinDeck/blob/codex/dolphin-deck-1.1.0/Screenshots/IMG_4943.PNG"><img src="https://raw.githubusercontent.com/LukasL2007/DolphinDeck/codex/dolphin-deck-1.1.0/Screenshots/IMG_4943.PNG" width="240" alt="Screenshot IMG_4943"></a>
+  <a href="https://github.com/LukasL2007/DolphinDeck/blob/codex/dolphin-deck-1.1.0/Screenshots/IMG_4944.PNG"><img src="https://raw.githubusercontent.com/LukasL2007/DolphinDeck/codex/dolphin-deck-1.1.0/Screenshots/IMG_4944.PNG" width="240" alt="Screenshot IMG_4944"></a>
+  <a href="https://github.com/LukasL2007/DolphinDeck/blob/codex/dolphin-deck-1.1.0/Screenshots/IMG_4945.PNG"><img src="https://raw.githubusercontent.com/LukasL2007/DolphinDeck/codex/dolphin-deck-1.1.0/Screenshots/IMG_4945.PNG" width="240" alt="Screenshot IMG_4945"></a>
+  <a href="https://github.com/LukasL2007/DolphinDeck/blob/codex/dolphin-deck-1.1.0/Screenshots/IMG_4946.PNG"><img src="https://raw.githubusercontent.com/LukasL2007/DolphinDeck/codex/dolphin-deck-1.1.0/Screenshots/IMG_4946.PNG" width="240" alt="Screenshot IMG_4946"></a>
+  <a href="https://github.com/LukasL2007/DolphinDeck/blob/codex/dolphin-deck-1.1.0/Screenshots/IMG_4947.PNG"><img src="https://raw.githubusercontent.com/LukasL2007/DolphinDeck/codex/dolphin-deck-1.1.0/Screenshots/IMG_4947.PNG" width="240" alt="Screenshot IMG_4947"></a>
+  <a href="https://github.com/LukasL2007/DolphinDeck/blob/codex/dolphin-deck-1.1.0/Screenshots/IMG_4948.PNG"><img src="https://raw.githubusercontent.com/LukasL2007/DolphinDeck/codex/dolphin-deck-1.1.0/Screenshots/IMG_4948.PNG" width="240" alt="Screenshot IMG_4948"></a>
 </p>

@@ -4,6 +4,22 @@
   <img src="DolphinDeck/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png" width="160" alt="Dolphin Deck App-Icon">
 </p>
 
+## Bilderstrecke
+
+Klicke ein Bild zum Vergrößern.
+
+<p align="center">
+  <a href="Screenshots/IMG_4940.PNG"><img src="Screenshots/IMG_4940.PNG" width="240" alt="Screenshot IMG_4940"></a>
+  <a href="Screenshots/IMG_4941.PNG"><img src="Screenshots/IMG_4941.PNG" width="240" alt="Screenshot IMG_4941"></a>
+  <a href="Screenshots/IMG_4942.PNG"><img src="Screenshots/IMG_4942.PNG" width="240" alt="Screenshot IMG_4942"></a>
+  <a href="Screenshots/IMG_4943.PNG"><img src="Screenshots/IMG_4943.PNG" width="240" alt="Screenshot IMG_4943"></a>
+  <a href="Screenshots/IMG_4944.PNG"><img src="Screenshots/IMG_4944.PNG" width="240" alt="Screenshot IMG_4944"></a>
+  <a href="Screenshots/IMG_4945.PNG"><img src="Screenshots/IMG_4945.PNG" width="240" alt="Screenshot IMG_4945"></a>
+  <a href="Screenshots/IMG_4946.PNG"><img src="Screenshots/IMG_4946.PNG" width="240" alt="Screenshot IMG_4946"></a>
+  <a href="Screenshots/IMG_4947.PNG"><img src="Screenshots/IMG_4947.PNG" width="240" alt="Screenshot IMG_4947"></a>
+  <a href="Screenshots/IMG_4948.PNG"><img src="Screenshots/IMG_4948.PNG" width="240" alt="Screenshot IMG_4948"></a>
+</p>
+
 Dolphin Deck ist eine native SwiftUI-Begleit-App für den Flipper Zero. Sie
 verbindet sich per Bluetooth LE und verwendet das offizielle Flipper-RPC-
 Protokoll für Fernsteuerung, Displayübertragung, Dateien, File Favorites,
@@ -341,3 +357,4 @@ Die Swift-Package-Abhängigkeiten liegen unter `Packages/Peripheral` und werden
 Das RPC-/Peripheral-Paket basiert auf Teilen der offiziellen
 [Flipper iOS App](https://github.com/flipperdevices/Flipper-iOS-App).
 Lizenzhinweise stehen in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+

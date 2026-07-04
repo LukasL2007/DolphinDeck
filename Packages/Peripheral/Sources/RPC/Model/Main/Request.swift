@@ -35,6 +35,7 @@ public enum Request {
 
     public enum Application {
         case start(String, String)
+        case dataExchange([UInt8])
         case lockStatus
         case loadFile(Path)
         case pressButton(String, Int)
@@ -203,6 +204,12 @@ extension Request.Application {
                 $0.appStartRequest = .with {
                     $0.name = name
                     $0.args = args
+                }
+            }
+        case let .dataExchange(bytes):
+            return .with {
+                $0.appDataExchangeRequest = .with {
+                    $0.data = .init(bytes)
                 }
             }
         case .lockStatus:
@@ -408,6 +415,8 @@ extension Request.Application: CustomStringConvertible {
         switch self {
         case let .start(name, args):
             return "start(\(name), \(args))"
+        case let .dataExchange(bytes):
+            return "dataExchange(\(bytes.count) bytes)"
         case .lockStatus:
             return "lockStatus"
         case let .loadFile(path):

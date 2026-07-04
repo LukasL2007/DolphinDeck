@@ -1,11 +1,13 @@
 @preconcurrency import CoreBluetooth
 @preconcurrency import Combine
+import AudioToolbox
 import Foundation
 @preconcurrency import Peripheral
+@preconcurrency import UserNotifications
 import WidgetKit
 
 @MainActor
-final class FlipperBluetoothManager: NSObject, ObservableObject {
+final class FlipperBluetoothManager: NSObject, ObservableObject, UNUserNotificationCenterDelegate {
     static let shared = FlipperBluetoothManager()
 
     @Published private(set) var connectionState: FlipperConnectionState = .idle
@@ -36,11 +38,23 @@ final class FlipperBluetoothManager: NSObject, ObservableObject {
     @Published private(set) var remoteHistory: [RemoteButton] = []
     @Published private(set) var isFlipperLocked: Bool?
     @Published private(set) var isUnlockingFlipper = false
+    @Published private(set) var bridgeState: DolphinDeckBridgeState = .unavailable
+    @Published private(set) var lastBridgeEvent: String?
+    @Published private(set) var lastBridgeResult: String?
+    @Published private(set) var bridgeNotificationAuthorized = false
+    @Published private(set) var bridgeRangeMode: DolphinDeckRangeMode = .direct
+    @Published var bridgeAutoStart = false {
+        didSet {
+            UserDefaults.standard.set(bridgeAutoStart, forKey: Self.bridgeAutoStartKey)
+        }
+    }
     @Published var keepConnected = true
 
     private static let restorationIdentifier = "de.lukasleipacher.DolphinDeck.central"
     private static let selectedPeripheralKey = "selectedFlipperPeripheral"
     private static let remoteHistoryKey = "remoteButtonHistory"
+    private static let bridgeAutoStartKey = "dolphinDeckBridgeAutoStart"
+    private static let bridgeRangeModeKey = "dolphinDeckBridgeRangeMode"
 
     private var central: CBCentralManager!
     private var peripheral: CBPeripheral?
@@ -69,6 +83,12 @@ final class FlipperBluetoothManager: NSObject, ObservableObject {
         if let value = UserDefaults.standard.string(forKey: Self.selectedPeripheralKey) {
             selectedPeripheralID = UUID(uuidString: value)
         }
+        bridgeAutoStart = UserDefaults.standard.bool(forKey: Self.bridgeAutoStartKey)
+        if let value = UserDefaults.standard.string(forKey: Self.bridgeRangeModeKey),
+           let mode = DolphinDeckRangeMode(rawValue: value) {
+            bridgeRangeMode = mode
+        }
+        UNUserNotificationCenter.current().delegate = self
         central = CBCentralManager(
             delegate: self,
             queue: .main,
@@ -221,13 +241,34 @@ final class FlipperBluetoothManager: NSObject, ObservableObject {
         rpcSession = session
         FlipperSession.current = session
         rpcReady = true
+        bridgeState = .stopped
         lastRPCMessage = "RPC verbunden"
         rpcMessageTask = Task { [weak self] in
             for await message in session.message {
                 guard !Task.isCancelled else { return }
-                if case .screenFrame(let frame) = message {
+                switch message {
+                case .screenFrame(let frame):
                     self?.screenPixels = frame.pixels
+                case .appDataExchange(let bytes):
+                    await self?.handleBridgeData(bytes)
+                case .appState(.closed):
+                    if self?.bridgeState == .connected ||
+                        self?.bridgeState == .starting {
+                        self?.bridgeState = .stopped
+                    }
+                case .appState(.started):
+                    if self?.bridgeState == .starting {
+                        self?.bridgeState = .connected
+                    }
+                default:
+                    break
                 }
+            }
+        }
+        if bridgeAutoStart {
+            Task { [weak self] in
+                try? await Task.sleep(for: .milliseconds(400))
+                await self?.startDolphinDeckBridge()
             }
         }
     }
@@ -240,6 +281,9 @@ final class FlipperBluetoothManager: NSObject, ObservableObject {
         rpcBridge = nil
         FlipperSession.current = nil
         rpcReady = false
+        bridgeState = .unavailable
+        lastBridgeEvent = nil
+        lastBridgeResult = nil
         isScreenStreaming = false
         screenPixels = nil
         detailedInfo = []
@@ -279,6 +323,152 @@ final class FlipperBluetoothManager: NSObject, ObservableObject {
         } catch {
             lastRPCMessage = "Alarm fehlgeschlagen: \(error.localizedDescription)"
         }
+    }
+
+    func requestBridgeNotificationPermission() async {
+        do {
+            bridgeNotificationAuthorized = try await UNUserNotificationCenter.current()
+                .requestAuthorization(options: [.alert, .sound])
+            lastBridgeResult = bridgeNotificationAuthorized
+                ? "Mitteilungen und Suchton sind freigegeben."
+                : "Mitteilungen sind nicht freigegeben."
+        } catch {
+            bridgeNotificationAuthorized = false
+            lastBridgeResult = "Mitteilungsfreigabe fehlgeschlagen: \(error.localizedDescription)"
+        }
+    }
+
+    func startDolphinDeckBridge() async {
+        guard let rpcSession else {
+            bridgeState = .unavailable
+            lastBridgeResult = "RPC ist noch nicht bereit."
+            return
+        }
+        guard bridgeState != .starting else { return }
+        bridgeState = .starting
+        lastBridgeResult = nil
+        do {
+            try await rpcSession.appStart("Dolphin Deck Bridge", args: "")
+            bridgeState = .connected
+            try await rpcSession.appDataExchange(Array("DD1|HELLO|IOS_1.1.0".utf8))
+            await sendBridgeConfiguration()
+            lastBridgeResult = "Dolphin Deck Bridge ist verbunden."
+        } catch {
+            bridgeState = .failed(error.localizedDescription)
+            lastBridgeResult = "Bridge-Start fehlgeschlagen. Ist die FAP installiert?"
+        }
+    }
+
+    func stopDolphinDeckBridge() async {
+        guard let rpcSession else {
+            bridgeState = .unavailable
+            return
+        }
+        do {
+            try await rpcSession.appExit()
+            bridgeState = .stopped
+            lastBridgeResult = "Bridge gestoppt."
+        } catch {
+            bridgeState = .failed(error.localizedDescription)
+        }
+    }
+
+    func setBridgeRangeMode(_ mode: DolphinDeckRangeMode) async {
+        bridgeRangeMode = mode
+        UserDefaults.standard.set(mode.rawValue, forKey: Self.bridgeRangeModeKey)
+        await sendBridgeConfiguration()
+    }
+
+    private func sendBridgeConfiguration() async {
+        guard let rpcSession, bridgeState == .connected else { return }
+        let message = "DD1|CONFIG|TRANSPORT|\(bridgeRangeMode.flipperTransport)"
+        do {
+            try await rpcSession.appDataExchange(Array(message.utf8))
+            lastBridgeResult = "\(bridgeRangeMode.title) aktiviert."
+        } catch {
+            lastBridgeResult = "Bridge-Einstellung fehlgeschlagen: \(error.localizedDescription)"
+        }
+    }
+
+    private func handleBridgeData(_ bytes: [UInt8]) async {
+        guard let message = String(bytes: bytes, encoding: .utf8) else {
+            lastBridgeResult = "Unlesbare Bridge-Nachricht empfangen."
+            return
+        }
+        let fields = message.split(separator: "|", omittingEmptySubsequences: false)
+            .map(String.init)
+        guard fields.count >= 3, fields[0] == "DD1" else {
+            lastBridgeResult = "Unbekanntes Bridge-Protokoll."
+            return
+        }
+        if fields[1] == "EVENT" {
+            let command = fields[2]
+            lastBridgeEvent = command
+            await handleBridgeCommand(command)
+        } else if fields[1] == "STATUS" || fields[1] == "RESULT" {
+            lastBridgeResult = fields.dropFirst(2).joined(separator: " · ")
+        } else if fields[1] == "HELLO" {
+            bridgeState = .connected
+            lastBridgeResult = "Bridge-Handshake erfolgreich."
+        }
+    }
+
+    private func handleBridgeCommand(_ command: String) async {
+        switch command {
+        case "FIND_PHONE", "NOTIFY":
+            await triggerPhoneFinder()
+            await sendBridgeResult(command: command, result: "OK")
+        case "VOLUME_UP", "VOLUME_DOWN", "PLAY_PAUSE", "HOME", "APP_SWITCHER":
+            let result = bridgeRangeMode == .direct ? "REQUIRES_ESP32_HID" : "ROUTED_TO_ESP32"
+            lastBridgeResult = bridgeRangeMode == .direct
+                ? "Diese Systemtaste benötigt den ESP32-BLE-HID-Modus."
+                : "Die Aktion wird vom Flipper direkt an das ESP32-Modul gesendet."
+            await sendBridgeResult(command: command, result: result)
+        case "LOCK_REQUEST":
+            lastBridgeResult = "iOS stellt Drittanbieter-Apps keinen Befehl zum Sperren des Displays bereit."
+            await sendBridgeResult(command: command, result: "UNAVAILABLE_ON_IOS")
+        default:
+            lastBridgeResult = "Unbekannte Bridge-Aktion: \(command)"
+            await sendBridgeResult(command: command, result: "UNKNOWN_COMMAND")
+        }
+    }
+
+    private func sendBridgeResult(command: String, result: String) async {
+        guard let rpcSession else { return }
+        let message = "DD1|RESULT|\(command)|\(result)"
+        try? await rpcSession.appDataExchange(Array(message.utf8))
+    }
+
+    private func triggerPhoneFinder() async {
+        if !bridgeNotificationAuthorized {
+            await requestBridgeNotificationPermission()
+        }
+
+        let content = UNMutableNotificationContent()
+        content.title = "Dolphin Deck"
+        content.body = "Dein Flipper sucht dieses iPhone."
+        content.sound = .default
+        let request = UNNotificationRequest(
+            identifier: "dolphin-deck-find-\(UUID().uuidString)",
+            content: content,
+            trigger: nil)
+        try? await UNUserNotificationCenter.current().add(request)
+
+        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
+        for index in 0..<3 {
+            AudioServicesPlaySystemSound(1005)
+            if index < 2 {
+                try? await Task.sleep(for: .milliseconds(450))
+            }
+        }
+        lastBridgeResult = "Suchhinweis auf dem iPhone ausgelöst."
+    }
+
+    nonisolated func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification
+    ) async -> UNNotificationPresentationOptions {
+        [.banner, .list, .sound]
     }
 
     func enqueueRemotePress(_ button: RemoteButton, long: Bool = false) {

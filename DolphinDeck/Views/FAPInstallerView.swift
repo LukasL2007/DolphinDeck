@@ -14,6 +14,8 @@ struct FAPInstallerView: View {
 
     private let favoritesReleaseURL =
         "https://github.com/LukasL2007/FlipperFileFavorites/releases/latest/download/flipper_file_favorites.fap"
+    private let bridgeReleaseURL =
+        "https://github.com/LukasL2007/DolphinDeck/releases/latest/download/dolphin_deck_bridge.fap"
 
     private var normalizedDestinationFolder: String {
         let trimmed = destinationFolder.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -41,6 +43,17 @@ struct FAPInstallerView: View {
                     Label(
                         "File Favorites installieren/aktualisieren",
                         systemImage: "star.square.on.square.fill")
+                }
+                Button {
+                    Task {
+                        await installFromURL(
+                            bridgeReleaseURL,
+                            preferredName: "dolphin_deck_bridge.fap")
+                    }
+                } label: {
+                    Label(
+                        "Dolphin Deck Bridge installieren/aktualisieren",
+                        systemImage: "point.3.connected.trianglepath.dotted")
                 }
                 Text("Lädt die aktuelle Release-Version aus deinem GitHub-Repository.")
                     .font(.caption)

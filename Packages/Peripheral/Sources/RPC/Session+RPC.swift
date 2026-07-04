@@ -286,6 +286,15 @@ extension Session {
         }
     }
 
+    public func appDataExchange(_ bytes: [UInt8]) async throws {
+        let response = try await self
+            .send(.application(.dataExchange(bytes)))
+            .response
+        guard case .ok = response else {
+            throw Error.unexpectedResponse(response)
+        }
+    }
+
     public func appLoadFile(_ path: Path) async throws {
         let response = try await self
             .send(.application(.loadFile(path)))

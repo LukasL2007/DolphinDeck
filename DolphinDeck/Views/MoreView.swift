@@ -61,6 +61,13 @@ struct MoreView: View {
 
             Section("Dolphin Deck") {
                 NavigationLink {
+                    DolphinDeckBridgeView()
+                } label: {
+                    MoreMenuRow(
+                        "Flipper-App & iPhone-Bridge",
+                        systemImage: "point.3.connected.trianglepath.dotted")
+                }
+                NavigationLink {
                     AutomationsView()
                 } label: {
                     MoreMenuRow(

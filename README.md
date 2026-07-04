@@ -170,7 +170,7 @@ gewählten `/ext/apps/...`-Ordner und kann sie danach direkt starten.
 ## uFBT: Quellcode unterwegs bauen und installieren
 
 iOS darf die Python-/ARM-Toolchain von uFBT nicht direkt innerhalb der
-App-Sandbox ausführen. Dolphin Deck verwendet deshalb einen kleinen eigenen
+Apple-Sandbox ausführen. Dolphin Deck verwendet deshalb einen kleinen eigenen
 Build-Host:
 
 ```text
@@ -276,3 +276,15 @@ Die Swift-Package-Abhängigkeiten liegen unter `Packages/Peripheral` und werden
 Das RPC-/Peripheral-Paket basiert auf Teilen der offiziellen
 [Flipper iOS App](https://github.com/flipperdevices/Flipper-iOS-App).
 Lizenzhinweise stehen in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+---
+
+## Bilderstrecke
+
+<p align="center">
+  <img src="DolphinDeck/Assets.xcassets/DolphinDeckLogo.imageset/DolphinDeckLogo.png" width="360" alt="Dolphin Deck Logo">
+</p>
+
+<p align="center">
+  <img src="DolphinDeck/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png" width="360" alt="Dolphin Deck App Icon">
+</p>

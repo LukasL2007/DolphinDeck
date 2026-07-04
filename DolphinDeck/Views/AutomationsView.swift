@@ -107,6 +107,7 @@ struct AutomationsView: View {
                 Label("Flipper verbinden", systemImage: "antenna.radiowaves.left.and.right")
                 Label("Flipper-Status", systemImage: "info.circle")
                 Label("Flipper-Favorit öffnen", systemImage: "star.fill")
+                Label("Favorit oder Signal ausführen", systemImage: "antenna.radiowaves.left.and.right")
                 Label("Virtuelle Taste senden", systemImage: "gamecontroller.fill")
                 Label("Datei an Flipper senden", systemImage: "doc.badge.arrow.up")
             } header: {

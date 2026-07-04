@@ -147,6 +147,11 @@ struct FileManagerView: View {
             }
         }
         .navigationTitle(path == "/" ? "Dateimanager" : (path.split(separator: "/").last.map(String.init) ?? path))
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if canManageItems, isSelecting {
+                selectionActionBar
+            }
+        }
         .toolbar {
             if canManageItems {
                 ToolbarItem(placement: .topBarLeading) {
@@ -166,54 +171,6 @@ struct FileManagerView: View {
                     .disabled(items.isEmpty)
                 }
 
-                ToolbarItemGroup(placement: .bottomBar) {
-                    Button {
-                        prepareClipboard(mode: .copy)
-                    } label: {
-                        Label("Kopieren", systemImage: "doc.on.doc")
-                            .labelStyle(.iconOnly)
-                    }
-                    .disabled(!hasSelection || isOperating)
-
-                    Button {
-                        prepareClipboard(mode: .move)
-                    } label: {
-                        Label("Ausschneiden", systemImage: "scissors")
-                            .labelStyle(.iconOnly)
-                    }
-                    .disabled(!hasSelection || isOperating)
-
-                    Text("\(selection.count) ausgewählt")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity)
-
-                    if !bluetooth.fileClipboard.isEmpty {
-                        Button {
-                            Task { await pasteClipboard() }
-                        } label: {
-                            Label(clipboardActionTitle, systemImage: clipboardActionSymbol)
-                                .labelStyle(.iconOnly)
-                        }
-                        .disabled(isOperating)
-                    }
-
-                    Menu {
-                        selectionMoreMenu
-                    } label: {
-                        Label("Mehr", systemImage: "ellipsis.circle")
-                            .labelStyle(.iconOnly)
-                    }
-                    .disabled(!hasSelection || isOperating)
-
-                    Button(role: .destructive) {
-                        showBatchDelete = true
-                    } label: {
-                        Label("Löschen", systemImage: "trash")
-                            .labelStyle(.iconOnly)
-                    }
-                    .disabled(!hasSelection || isOperating)
-                }
             }
             ToolbarItemGroup(placement: .topBarTrailing) {
                 if canManageItems, !isSelecting {
@@ -435,6 +392,92 @@ struct FileManagerView: View {
             .foregroundStyle(selection.contains(item.path) ? .orange : .secondary)
     }
 
+    private var selectionActionBar: some View {
+        VStack(spacing: 8) {
+            HStack {
+                Text("\(selection.count) ausgewählt")
+                    .font(.caption.bold())
+                    .foregroundStyle(.primary)
+                Spacer()
+                if !bluetooth.fileClipboard.isEmpty {
+                    Text("\(bluetooth.fileClipboard.count) in Zwischenablage")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            HStack(spacing: 0) {
+                selectionActionButton(
+                    title: "Kopieren",
+                    systemImage: "doc.on.doc",
+                    disabled: !hasSelection || isOperating
+                ) {
+                    prepareClipboard(mode: .copy)
+                }
+
+                selectionActionButton(
+                    title: "Ausschneiden",
+                    systemImage: "scissors",
+                    disabled: !hasSelection || isOperating
+                ) {
+                    prepareClipboard(mode: .move)
+                }
+
+                selectionActionButton(
+                    title: clipboardActionTitle,
+                    systemImage: clipboardActionSymbol,
+                    disabled: bluetooth.fileClipboard.isEmpty || isOperating
+                ) {
+                    Task { await pasteClipboard() }
+                }
+
+                Menu {
+                    selectionMoreMenu
+                } label: {
+                    SelectionActionLabel(
+                        title: "Mehr",
+                        systemImage: "ellipsis.circle",
+                        color: .orange)
+                }
+                .frame(maxWidth: .infinity)
+                .disabled(isOperating || (!hasSelection && bluetooth.fileClipboard.isEmpty))
+
+                selectionActionButton(
+                    title: "Löschen",
+                    systemImage: "trash",
+                    color: .red,
+                    disabled: !hasSelection || isOperating
+                ) {
+                    showBatchDelete = true
+                }
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(.regularMaterial)
+        .overlay(alignment: .bottom) {
+            Divider()
+        }
+    }
+
+    private func selectionActionButton(
+        title: String,
+        systemImage: String,
+        color: Color = .orange,
+        disabled: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            SelectionActionLabel(
+                title: title,
+                systemImage: systemImage,
+                color: disabled ? .secondary : color)
+        }
+        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity)
+        .disabled(disabled)
+    }
+
     @ViewBuilder
     private var fileActionsMenu: some View {
         if hasSelection {
@@ -497,12 +540,14 @@ struct FileManagerView: View {
         } label: {
             Label("Kopieren", systemImage: "doc.on.doc")
         }
+        .disabled(!hasSelection)
 
         Button {
             prepareClipboard(mode: .move)
         } label: {
             Label("Ausschneiden", systemImage: "scissors")
         }
+        .disabled(!hasSelection)
 
         if selection.count == 1 {
             Button {
@@ -518,6 +563,7 @@ struct FileManagerView: View {
         } label: {
             Label("Zu File Favorites", systemImage: "star")
         }
+        .disabled(!hasSelection)
 
         if !bluetooth.fileClipboard.isEmpty {
             Divider()
@@ -538,6 +584,7 @@ struct FileManagerView: View {
         } label: {
             Label("Löschen", systemImage: "trash")
         }
+        .disabled(!hasSelection)
     }
 
     private func load() async {
@@ -745,6 +792,26 @@ struct FileManagerView: View {
     private func childPath(_ name: String) -> String {
         let cleanName = name.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
         return path.hasSuffix("/") ? path + cleanName : path + "/" + cleanName
+    }
+}
+
+private struct SelectionActionLabel: View {
+    let title: String
+    let systemImage: String
+    let color: Color
+
+    var body: some View {
+        VStack(spacing: 4) {
+            Image(systemName: systemImage)
+                .font(.body.weight(.semibold))
+            Text(title)
+                .font(.system(size: 9, weight: .medium))
+                .lineLimit(1)
+                .minimumScaleFactor(0.65)
+        }
+        .foregroundStyle(color)
+        .frame(maxWidth: .infinity, minHeight: 38)
+        .contentShape(Rectangle())
     }
 }
 

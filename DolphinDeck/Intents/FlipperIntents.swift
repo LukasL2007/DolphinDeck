@@ -244,6 +244,26 @@ struct OpenFlipperFavoriteIntent: AppIntent {
     }
 }
 
+struct RunFlipperFavoriteIntent: AppIntent {
+    static let title: LocalizedStringResource = "Flipper-Favorit ausführen"
+    static let description = IntentDescription(
+        "Startet einen gespeicherten File Favorite direkt auf dem Flipper, zum Beispiel ein Sub-GHz- oder Infrarot-Signal.")
+    static let openAppWhenRun = false
+
+    @Parameter(title: "Favorit oder Signal")
+    var favorite: FavoriteShortcutEntity
+
+    func perform() async throws -> some IntentResult & ProvidesDialog {
+        let manager = await FlipperBluetoothManager.shared
+        let success = await manager.executeFavorite(at: favorite.id)
+        if success {
+            return .result(dialog: "„\(favorite.name)“ wurde an den Flipper gesendet.")
+        }
+        let message = await manager.lastRPCMessage ?? "Der Favorit konnte nicht ausgeführt werden."
+        return .result(dialog: IntentDialog(stringLiteral: message))
+    }
+}
+
 struct DolphinDeckShortcuts: AppShortcutsProvider {
     static let shortcutTileColor: ShortcutTileColor = .orange
 
@@ -280,6 +300,15 @@ struct DolphinDeckShortcuts: AppShortcutsProvider {
             ],
             shortTitle: "Favorit öffnen",
             systemImageName: "star.fill")
+        AppShortcut(
+            intent: RunFlipperFavoriteIntent(),
+            phrases: [
+                "Sende ein Flipper Signal mit \(.applicationName)",
+                "Führe einen Flipper Favoriten mit \(.applicationName) aus",
+                "\(.applicationName) Signal senden",
+            ],
+            shortTitle: "Signal senden",
+            systemImageName: "antenna.radiowaves.left.and.right")
         AppShortcut(
             intent: SendFileToFlipperIntent(),
             phrases: [

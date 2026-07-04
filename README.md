@@ -1,4 +1,4 @@
-# Dolphin Deck 1.0.0
+# Dolphin Deck 1.0.1
 
 <p align="center">
   <img src="DolphinDeck/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png" width="160" alt="Dolphin Deck App-Icon">
@@ -31,8 +31,9 @@ Kurzbefehle und App-Installation.
 - uFBT-Quellcode-Build über einen eigenen Build-Host
 - Home- und Sperrbildschirm-Widget
 - Apple-Kurzbefehle für Verbindung, Status, Alarm, Tasten, Favoriten und Datei-Upload
+- direkte Siri-/Widget-Schnellaktion für bevorzugte Sub-GHz-Signale
 
-Die Apple-Watch-App ist in Version 1.0.0 bewusst nicht enthalten.
+Die Apple-Watch-App ist in Version 1.0.1 bewusst nicht enthalten.
 
 ## Voraussetzungen
 
@@ -46,8 +47,8 @@ Die Apple-Watch-App ist in Version 1.0.0 bewusst nicht enthalten.
 
 Im GitHub-Release liegen zwei Downloads:
 
-- `DolphinDeck_1.0.0_Source.zip` enthält das vollständige Xcode-Projekt.
-- `DolphinDeck_1.0.0_Development.ipa` ist mit dem Entwicklungsprofil des
+- `DolphinDeck_1.0.1_Source.zip` enthält das vollständige Xcode-Projekt.
+- `DolphinDeck_1.0.1_Development.ipa` ist mit dem Entwicklungsprofil des
   Projekts signiert und funktioniert nur auf darin freigeschalteten Geräten.
   Für andere Geräte muss die App mit dem eigenen Apple-Developer-Team neu
   signiert werden.
@@ -66,7 +67,7 @@ Im GitHub-Release liegen zwei Downloads:
 8. Einmal **Product → Clean Build Folder** und danach **Run** ausführen.
 
 Nach erfolgreicher Installation muss unter **Mehr → Einstellungen** die Version
-`1.0.0` angezeigt werden.
+`1.0.1` angezeigt werden.
 
 ## Flipper verbinden
 
@@ -100,7 +101,8 @@ Der Dateimanager liegt unter **Mehr → Dateimanager**.
 
 1. Auf den Kreis neben einer Datei oder einem Ordner tippen.
 2. Weitere Dateien und Ordner auswählen oder oben **Alle** verwenden.
-3. In der unteren Aktionsleiste eine Operation wählen:
+3. In der feststehenden Aktionsleiste oberhalb der Dateiliste eine Operation
+   wählen:
    - Kopieren
    - Ausschneiden
    - Einfügen beziehungsweise Verschieben
@@ -134,6 +136,11 @@ Weitere Aktionen:
 - Flipper finden
 - Flipper-Taste drücken
 - Flipper-Favorit öffnen
+- Flipper-Favorit ausführen / Sub-GHz-Signal senden
+
+Bei einem `.sub`-Favoriten öffnet **Favorit ausführen** den gespeicherten
+Sub-GHz-Sender und löst nach dem Laden genau einen OK-Tastendruck aus. Andere
+Dateitypen werden wie bisher in ihrer Flipper-App geöffnet.
 
 ## File Favorites
 
@@ -177,7 +184,10 @@ Auf einem Mac oder Linux-Server:
 ```bash
 python3 -m pip install --upgrade ufbt
 export UFBT_BUILD_TOKEN="ein-langes-zufälliges-passwort"
-python3 Tools/ufbt_build_server.py --host 0.0.0.0 --port 8787
+python3 Tools/ufbt_build_server.py \
+  --host 0.0.0.0 \
+  --port 8787 \
+  --ufbt "$(command -v ufbt)"
 ```
 
 Für unterwegs den Dienst über HTTPS oder ein privates VPN wie Tailscale
@@ -189,8 +199,9 @@ weiterleiten.
 1. **Mehr → uFBT Build & Install** öffnen.
 2. Quellcodeordner mit `application.fam` auswählen.
 3. HTTPS-Adresse des Hosts und dasselbe Token eintragen.
-4. Zielkategorie auswählen.
-5. **Mit uFBT bauen und installieren** drücken.
+4. Zuerst **Verbindung zum Build-Host testen** drücken.
+5. Zielkategorie auswählen.
+6. **Mit uFBT bauen und installieren** drücken.
 
 Das Zugriffstoken wird im iOS-Schlüsselbund gespeichert. Build-Ausgabe und
 Fehler werden direkt in der App angezeigt.
@@ -209,6 +220,11 @@ Wenn Bundle-IDs geändert werden, muss eine eigene App Group in
 `DolphinDeck.entitlements` und `DolphinDeckWidget.entitlements` identisch
 hinterlegt werden. Danach App einmal starten und das Widget über den
 iOS-Widget-Dialog hinzufügen.
+
+Das Widget zeigt bevorzugt den ersten mit einem Stern markierten
+Sub-GHz-Favoriten. Ein Tipp öffnet Dolphin Deck per Deep Link, verbindet den
+bekannten Flipper und sendet das Signal. Wenn kein `.sub`-Favorit vorhanden
+ist, wird stattdessen der erste normale File Favorite geöffnet.
 
 ## Projekt bauen
 

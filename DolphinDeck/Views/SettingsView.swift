@@ -20,7 +20,7 @@ struct SettingsView: View {
             }
 
             Section("Dolphin Deck") {
-                    LabeledContent("Version", value: "1.0.0")
+                LabeledContent("Version", value: "1.0.1")
                 Link(
                     "Flipper RPC – Open Source",
                     destination: URL(string: "https://github.com/flipperdevices/flipperzero-protobuf")!)

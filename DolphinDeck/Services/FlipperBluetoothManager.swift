@@ -525,19 +525,55 @@ final class FlipperBluetoothManager: NSObject, ObservableObject {
         return result
     }
 
-    func launchFile(at path: String) async {
+    @discardableResult
+    func launchFile(at path: String) async -> Bool {
         guard let rpcSession else {
             lastRPCMessage = "RPC ist noch nicht bereit"
-            return
+            return false
         }
         rpcBusy = true
         defer { rpcBusy = false }
         do {
             try await rpcSession.appLoadFile(Peripheral.Path(string: path))
             lastRPCMessage = "\(path.split(separator: "/").last ?? "Datei") gestartet"
+            return true
         } catch {
             lastRPCMessage = "Datei konnte nicht gestartet werden: \(error.localizedDescription)"
+            return false
         }
+    }
+
+    @discardableResult
+    func executeFavorite(at path: String) async -> Bool {
+        if !isConnected {
+            reconnect()
+        }
+        for _ in 0..<30 {
+            if rpcReady { break }
+            try? await Task.sleep(for: .milliseconds(500))
+        }
+        guard rpcReady else {
+            lastRPCMessage = "Der Flipper konnte nicht rechtzeitig verbunden werden"
+            return false
+        }
+
+        let success = await launchFile(at: path)
+        guard success else { return false }
+
+        if path.lowercased().hasSuffix(".sub") {
+            // Opening a saved Sub-GHz file lands on the transmitter screen.
+            // Send one deliberate OK event only after that screen has loaded.
+            try? await Task.sleep(for: .milliseconds(900))
+            await press(.ok)
+            lastRPCMessage = "\(path.split(separator: "/").last ?? "Sub-GHz-Signal") gesendet"
+        }
+
+        if let index = favoritesDatabase.entries.firstIndex(where: { $0.path == path }) {
+            var database = favoritesDatabase
+            database.entries[index].lastOpenedAt = UInt32(Date().timeIntervalSince1970)
+            await saveFavorites(database)
+        }
+        return true
     }
 
     func refreshFavorites() async {
@@ -1242,6 +1278,17 @@ final class FlipperBluetoothManager: NSObject, ObservableObject {
         }
         defaults.set(favoritesDatabase.entries.count, forKey: "favorites")
         defaults.set(snapshot.firmware, forKey: "firmware")
+        let subGHzFavorites = favoritesDatabase.entries.filter {
+            $0.favorite && $0.path.lowercased().hasSuffix(".sub")
+        }
+        let markedFavorites = favoritesDatabase.entries.filter(\.favorite)
+        let quickFavorites = Array(
+            (!subGHzFavorites.isEmpty
+             ? subGHzFavorites
+             : (markedFavorites.isEmpty ? favoritesDatabase.entries : markedFavorites))
+                .prefix(3))
+        defaults.set(quickFavorites.map(\.name), forKey: "quickFavoriteNames")
+        defaults.set(quickFavorites.map(\.path), forKey: "quickFavoritePaths")
         WidgetCenter.shared.reloadAllTimelines()
     }
 }

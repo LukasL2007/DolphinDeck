@@ -18,6 +18,7 @@ struct UFBTBuilderView: View {
     @State private var buildLog: String?
     @State private var installedPath: String?
     @State private var overwriteExisting = true
+    @State private var isTestingHost = false
 
     var body: some View {
         Form {
@@ -61,6 +62,15 @@ struct UFBTBuilderView: View {
                 Text("Für unterwegs sollte der Build-Host über HTTPS oder ein privates VPN wie Tailscale erreichbar sein.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+
+                Button {
+                    Task { await testBuildHost() }
+                } label: {
+                    Label(
+                        isTestingHost ? "Build-Host wird geprüft …" : "Verbindung zum Build-Host testen",
+                        systemImage: "network.badge.shield.half.filled")
+                }
+                .disabled(normalizedServerBaseURL == nil || isTestingHost || isWorking)
             }
 
             Section("Installation auf dem Flipper") {
@@ -88,7 +98,7 @@ struct UFBTBuilderView: View {
                 .tint(.orange)
                 .disabled(
                     sourceProject == nil ||
-                    normalizedServerURL == nil ||
+                    buildEndpoint == nil ||
                     !bluetooth.rpcReady ||
                     isWorking)
             }
@@ -137,14 +147,26 @@ struct UFBTBuilderView: View {
         }
     }
 
-    private var normalizedServerURL: URL? {
+    private var normalizedServerBaseURL: URL? {
         var value = serverURL.trimmingCharacters(in: .whitespacesAndNewlines)
         while value.hasSuffix("/") { value.removeLast() }
-        guard let baseURL = URL(string: value),
-              ["http", "https"].contains(baseURL.scheme?.lowercased() ?? "") else {
+        guard var components = URLComponents(string: value),
+              ["http", "https"].contains(components.scheme?.lowercased() ?? ""),
+              components.host != nil else {
             return nil
         }
-        return baseURL.appendingPathComponent("build")
+        if components.path.hasSuffix("/build") || components.path.hasSuffix("/health") {
+            components.path = (components.path as NSString).deletingLastPathComponent
+        }
+        return components.url
+    }
+
+    private var buildEndpoint: URL? {
+        normalizedServerBaseURL?.appendingPathComponent("build")
+    }
+
+    private var healthEndpoint: URL? {
+        normalizedServerBaseURL?.appendingPathComponent("health")
     }
 
     private var normalizedDestinationFolder: String {
@@ -170,7 +192,7 @@ struct UFBTBuilderView: View {
     }
 
     private func buildAndInstall() async {
-        guard let sourceProject, let endpoint = normalizedServerURL else { return }
+        guard let sourceProject, let endpoint = buildEndpoint else { return }
         guard bluetooth.rpcReady else {
             statusMessage = "Der Flipper ist nicht verbunden oder RPC ist nicht bereit."
             return
@@ -204,7 +226,11 @@ struct UFBTBuilderView: View {
                 throw UFBTBuildError.invalidResponse
             }
 
-            let decoded = try JSONDecoder().decode(UFBTBuildResponse.self, from: data)
+            guard let decoded = try? JSONDecoder().decode(UFBTBuildResponse.self, from: data) else {
+                let body = String(data: data, encoding: .utf8)?.prefix(400) ?? "keine Antwort"
+                throw UFBTBuildError.server(
+                    "Build-Host antwortet mit HTTP \(http.statusCode), aber nicht im erwarteten Format: \(body)")
+            }
             buildLog = decoded.log
             guard (200..<300).contains(http.statusCode), decoded.success,
                   let fap = decoded.fap, !fap.isEmpty,
@@ -226,6 +252,46 @@ struct UFBTBuilderView: View {
             statusMessage = "\(fileName) wurde gebaut und auf dem Flipper installiert."
         } catch {
             statusMessage = "uFBT fehlgeschlagen: \(error.localizedDescription)"
+        }
+    }
+
+    private func testBuildHost() async {
+        guard let endpoint = healthEndpoint else {
+            statusMessage = "Bitte eine vollständige Build-Host-Adresse mit http:// oder https:// eingeben."
+            return
+        }
+        isTestingHost = true
+        defer { isTestingHost = false }
+        statusMessage = "Build-Host wird unter \(endpoint.absoluteString) geprüft."
+
+        do {
+            var request = URLRequest(url: endpoint)
+            request.timeoutInterval = 20
+            let configuration = URLSessionConfiguration.ephemeral
+            configuration.timeoutIntervalForRequest = 20
+            configuration.timeoutIntervalForResource = 30
+            configuration.waitsForConnectivity = true
+            let (data, response) = try await URLSession(configuration: configuration)
+                .data(for: request)
+            guard let http = response as? HTTPURLResponse else {
+                throw UFBTBuildError.invalidResponse
+            }
+            guard let health = try? JSONDecoder().decode(UFBTHealthResponse.self, from: data) else {
+                throw UFBTBuildError.server(
+                    "Der Server antwortet mit HTTP \(http.statusCode), aber nicht als Dolphin-Deck-Buildhost.")
+            }
+            guard (200..<300).contains(http.statusCode), health.success else {
+                throw UFBTBuildError.server(health.message ?? "Build-Host ist nicht bereit.")
+            }
+            if health.ufbtFound == false {
+                throw UFBTBuildError.server(
+                    "Build-Host erreichbar, aber ufbt wurde auf dem Host nicht gefunden.")
+            }
+            statusMessage = health.ufbtCommand.map {
+                "Build-Host bereit. uFBT: \($0)"
+            } ?? (health.message ?? "Build-Host bereit.")
+        } catch {
+            statusMessage = "Build-Host nicht erreichbar: \(error.localizedDescription)"
         }
     }
 
@@ -305,6 +371,13 @@ private struct UFBTBuildResponse: Decodable {
     let fileName: String?
     let fap: Data?
     let log: String?
+}
+
+private struct UFBTHealthResponse: Decodable {
+    let success: Bool
+    let message: String?
+    let ufbtFound: Bool?
+    let ufbtCommand: String?
 }
 
 private enum UFBTBuildError: LocalizedError {

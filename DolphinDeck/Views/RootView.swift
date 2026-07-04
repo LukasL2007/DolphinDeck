@@ -2,6 +2,7 @@ import SwiftUI
 import UIKit
 
 struct RootView: View {
+    @EnvironmentObject private var bluetooth: FlipperBluetoothManager
     @State private var selectedTab = 0
 
     init() {
@@ -48,6 +49,19 @@ struct RootView: View {
             switch url.host {
             case "favorites": selectedTab = 1
             case "remote": selectedTab = 3
+            case "run-favorite":
+                selectedTab = 1
+                guard let components = URLComponents(
+                    url: url,
+                    resolvingAgainstBaseURL: false),
+                    let path = components.queryItems?
+                        .first(where: { $0.name == "path" })?.value,
+                    !path.isEmpty else {
+                    return
+                }
+                Task {
+                    await bluetooth.executeFavorite(at: path)
+                }
             default: selectedTab = 0
             }
         }
